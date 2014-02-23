@@ -1,0 +1,221 @@
+<head>
+  <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+  <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+  <style>
+    #output { 
+      font-family:monospace;
+      font-size: 8px;
+      background-color:hsl(60,80%,80%);
+     }
+  </style>
+<title>TileMill project tool</title> 
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="page-header">
+        <p class="navbar-text navbar-right">Made by <a href="http://stevebennett.me" class="navbar-link">Steve Bennett</a></p>
+        <h1>TileMill portability tool</h1>
+      </div>
+      <p class="lead">This tool helps your port a TileMill project from one server to another.</p>
+      <p>All processing is done in your browser. Your passwords are not sent to any servers.</p>
+      <form role="form" class="form-horizontal">
+        <div class="form-group">
+          <label for="file" class="col-sm-2 control-label">Choose the project.mml file to process</label>
+          <div class="col-sm-3">
+            <input type="file" id="files" name="files" class="form-control"/>
+          </div>
+
+        </div>
+        <p class="col-sm-12 invisible help-block">Update database settings in <strong>all</strong> layers as follows:</p>
+        <div class="form-group  invisible">
+          <label for="dbName" class="col-sm-2 control-label">Database name</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="dbName" placeholder="gis">
+          </div>
+        </div>
+        <div class="form-group invisible">
+          <label for="dbUsername" class="col-sm-2 control-label">Username</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="dbUsername">
+          </div>
+        </div>
+        <div class="form-group invisible">
+          <label for="dbPassword" class="col-sm-2 control-label">Password</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="dbPassword">
+          </div>
+        </div>
+        <div class="form-group invisible">
+          <label for="dbHost" class="col-sm-2 control-label">Database host</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="dbHost" placeholder="localhost">
+          </div>
+        </div>
+        <div class="form-group invisible">
+          <label for="dbPort" class="col-sm-2 control-label">Port</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" id="dbPort" placeholder="5432">
+          </div>
+        </div>
+        <p class="col-sm-12 invisible help-block">Update filepaths in layers as follows:</p>
+        <div id="filedirs">
+        </div>
+      </form>
+      <p>
+        <button type="button" id="download" class="btn btn-success invisible">File processed. Click to download.</button>
+      
+      </p>
+      <ul id="otherfiles">
+      </ul>
+      <!-- <pre id="output" class="pre-scrollable invisible"></p> -->
+    </div>
+  </div>
+
+    <script>
+      var project={};
+      function getpath(s) {
+        return s.substring(0,s.lastIndexOf('/'));
+      }
+      function getfilepart(s) {
+        return s.substring(s.lastIndexOf('/')+1);
+      }
+      function loadfile(theFile) {
+          return function(e) {
+            j = e.target.result;
+            try {
+              project = JSON.parse(j);
+            } catch (e) {
+              alert("Couldn't load file.");
+              return;
+            }
+            $("div.invisible,p.invisible").removeClass("invisible");
+            
+            // process file dirs            
+            $("#otherfiles li").remove();
+            filedir = {};
+            $("#filedirs div").remove();
+            var i=0;
+            project.Layer.forEach(function(e) { 
+              i++;
+              d = e.Datasource;
+
+              if ( e.Datasource.type == 'postgis') {
+                $("#dbName").attr('placeholder', d.dbname);
+                $("#dbUsername").attr('placeholder', d.user);
+                $("#dbPassword").attr('placeholder', d.password);
+                $("#dbHost").attr('placeholder', d.host);
+                $("#dbPort").attr('placeholder', d.port);
+
+              } else if (d.file.match(/^\//)) {
+                path = getpath(d.file);
+                if (filedir[path])
+                  return;
+                filedir[path]=true;
+                fg = $(
+                  '<div class="form-group">'+
+                  '   <label for="dir' + i + '" class="col-sm-2 control-label">' + path + '</label>'+
+                  '   <div class="col-sm-3">'+
+                  '    <input type="text" class="form-control pathinput" id="dir' + i + '" placeholder="' + path + '">'+
+                  '   </div>'+
+                  '</div>');
+                console.log(fg);
+                $("#filedirs").append(fg);
+
+                $('input[type="text"]').change(updateOutput);
+              }
+            });
+
+          };
+          
+        }
+      function handleFileSelect(evt) {
+        console.log(evt);
+        var f = evt.target.files[0]; // FileList object
+
+        var reader = new FileReader();
+
+        // Closure to capture the file information.
+        reader.onload = (loadfile)(f);
+        reader.readAsText(f);
+      
+      }
+      function updateOutput() {
+        if (!project)
+          return;
+        for (var i=0; i < project['Layer'].length; i++) {
+          var d = project['Layer'][i].Datasource;
+          if(d.type=='postgis') {
+
+            if ($("#dbName").val())
+              d.dbname = $("#dbName").val(); 
+            if ($("#dbUsername").val())
+              d.user = $("#dbUsername").val(); 
+            if ($("#dbPassword").val())
+              d.password = $("#dbPassword").val(); 
+            if ($("#dbHost").val())
+              d.host = $("#dbHost").val(); 
+            if ($("#dbPort").val())
+              d.port = $("#dbPort").val(); 
+          } else {
+            // replace leading path of each directory
+            $(".pathinput").each(function(e) {
+              e = $(this);
+              if (e.val() && (getpath(d.file) == this.placeholder)) {
+                  
+                  d.file = e.val() + '/' + getfilepart(d.file);
+
+              }
+            });
+
+          }   
+        };
+        $("button.invisible").removeClass("invisible");
+        $("#download").click(saveTextAsFile);
+
+        //$('#output').text(JSON.stringify(project));
+
+      }
+
+        
+      // from http://thiscouldbebetter.wordpress.com/2012/12/18/loading-editing-and-saving-a-text-file-in-html5-using-javascrip/
+      function saveTextAsFile()
+      {
+        //var textToWrite = $("#output").text();
+        var textToWrite = JSON.stringify(project);
+        var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+        var fileNameToSaveAs = 'project.mml';
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        if (window.webkitURL != null)
+        {
+          // Chrome allows the link to be clicked
+          // without actually adding it to the DOM.
+          downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+        }
+        else
+        {
+          // Firefox requires the link to be added to the DOM
+          // before it can be clicked.
+          downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+          downloadLink.onclick = destroyClickedElement;
+          downloadLink.style.display = "none";
+          document.body.appendChild(downloadLink);
+        }
+
+        downloadLink.click();
+      }
+
+      function destroyClickedElement(event)
+      {
+        document.body.removeChild(event.target);
+      }
+
+
+      $('#files').change(handleFileSelect);
+    </script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+</body>
