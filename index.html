@@ -94,7 +94,7 @@
         </div>
       </form>
       <p style="margin-bottom: 3em;">
-        <button type="button" class="btn btn-success invisible">
+        <button type="button" id="downloadbtn" class="btn btn-success invisible">
           <a id="download">File processed. Click to download.</a></button>
       </p>
     </div>
@@ -205,11 +205,13 @@
           }   
         };
         $("button.invisible").removeClass("invisible");
-        //$("#download").click(saveTextAsFile);
+        $("#downloadbtn").click(saveTextAsFile);
+        /*
+        // I don't get why this method doesn't work. Seems to work on Chrome from site44, but not from Github, nor in FireFox.
         var textToWrite = JSON.stringify(project);
         var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
         $("#download").attr('download', 'project.mml');
-        $("#download").attr('href', window.webkitURL.createObjectURL(textFileAsBlob));
+        $("#download").attr('href', window.webkitURL.createObjectURL(textFileAsBlob));*/
 
         //$('#output').text(JSON.stringify(project));
 
