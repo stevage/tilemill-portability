@@ -15,6 +15,26 @@
     #download:hover {
       text-decoration:none;
     }
+    /* http://stackoverflow.com/questions/11235206/twitter-bootstrap-form-file-element-upload-button */
+    .btn-file {
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-file input[type=file] {
+        position: absolute;
+        top: 0;
+        right: 0;
+        min-width: 100%;
+        min-height: 100%;
+        font-size: 999px;
+        text-align: right;
+        filter: alpha(opacity=0);
+        opacity: 0;
+        outline: none;
+        background: white;
+        cursor: inherit;
+        display: block;
+    }
   </style>
 <title>TileMill project tool</title> 
 </head>
@@ -30,9 +50,11 @@
       <p>All processing is done in your browser. Your passwords are not sent anywhere.</p>
       <form role="form" class="form-horizontal">
         <div class="form-group">
-          <label for="file" class="col-sm-2 control-label">Choose the project.mml file to process</label>
-          <div class="col-sm-3">
-            <input type="file" id="files" name="files" class="form-control"/>
+          <!--<label for="file" class="col-sm-2 control-label"></label>-->
+          <div class="col-sm-2">
+            <span class="btn btn-primary btn-file">
+            Select project.mml<input type="file" id="files" name="files" class="form-control"/>
+          </span>
           </div>
 
         </div>
