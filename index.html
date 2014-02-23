@@ -205,6 +205,7 @@
           }   
         };
         $("button.invisible").removeClass("invisible");
+        $("#downloadbtn").unbind("click");
         $("#downloadbtn").click(saveTextAsFile);
         /*
         // I don't get why this method doesn't work. Seems to work on Chrome from site44, but not from Github, nor in FireFox.
