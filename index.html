@@ -8,6 +8,13 @@
       font-size: 8px;
       background-color:hsl(60,80%,80%);
      }
+
+    #download {
+      color: white;
+    }
+    #download:hover {
+      text-decoration:none;
+    }
   </style>
 <title>TileMill project tool</title> 
 </head>
@@ -59,17 +66,14 @@
             <input type="text" class="form-control" id="dbPort" placeholder="5432">
           </div>
         </div>
-        <p class="col-sm-12 invisible help-block">Update filepaths in layers as follows:</p>
+        <p class="col-sm-12 invisible help-block">Update file paths in layers as follows:</p>
         <div id="filedirs">
         </div>
       </form>
-      <p>
-        <button type="button" id="download" class="btn btn-success invisible">File processed. Click to download.</button>
-      
+      <p style="margin-bottom: 3em;">
+        <button type="button" class="btn btn-success invisible">
+          <a id="download">File processed. Click to download.</a></button>
       </p>
-      <ul id="otherfiles">
-      </ul>
-      <!-- <pre id="output" class="pre-scrollable invisible"></p> -->
     </div>
   </div>
 
@@ -110,12 +114,18 @@
 
               } else if (d.file.match(/^\//)) {
                 path = getpath(d.file);
-                if (filedir[path])
+                if (filedir[path]) {
+                  filedir[path]++;
+                  //$("#" + path + "__times").text(filedir[path] + "x");
+                  // ugh, must be a better way.
+                  $("div").has("input[placeholder='" + path + "']").children("label").children().text(filedir[path] + "x");
                   return;
-                filedir[path]=true;
+                }
+                filedir[path]=1;
                 fg = $(
                   '<div class="form-group">'+
-                  '   <label for="dir' + i + '" class="col-sm-2 control-label">' + path + '</label>'+
+                  '   <label for="dir' + i + '" class="col-sm-2 control-label">' + path + 
+                  '&nbsp;&nbsp;<small style="color: gray;" ' /* id="' + path + '__times"*/ + '>' + 1 + 'x</small></label>' +
                   '   <div class="col-sm-3">'+
                   '    <input type="text" class="form-control pathinput" id="dir' + i + '" placeholder="' + path + '">'+
                   '   </div>'+
@@ -172,7 +182,11 @@
           }   
         };
         $("button.invisible").removeClass("invisible");
-        $("#download").click(saveTextAsFile);
+        //$("#download").click(saveTextAsFile);
+        var textToWrite = JSON.stringify(project);
+        var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+        $("#download").attr('download', 'project.mml');
+        $("#download").attr('href', window.webkitURL.createObjectURL(textFileAsBlob));
 
         //$('#output').text(JSON.stringify(project));
 
