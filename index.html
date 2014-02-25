@@ -137,24 +137,24 @@
 
               } else if (d.file.match(/^\//)) {
                 path = getpath(d.file);
-                if (filedir[path]) {
-                  filedir[path]++;
-                  //$("#" + path + "__times").text(filedir[path] + "x");
-                  // ugh, must be a better way.
-                  $("div").has("input[placeholder='" + path + "']").children("label").children().text(filedir[path] + "x");
-                  return;
+                if (!filedir[path]) {
+                  filedir[path]=0;
+                  fg = $(
+                    '<div class="form-group">'+
+                    '   <label for="dir' + i + '" class="col-sm-2 control-label">' + path + 
+                    '&nbsp;&nbsp;<small style="color: gray;">1x</small></label>' +
+                    '   <div class="col-sm-3">'+
+                    '    <input type="text" class="form-control pathinput" id="dir' + i + '" placeholder="' + path + '">'+
+                    '   </div>'+
+                    '</div>');
+                  console.log(fg);
+                  $("#filedirs").append(fg);
                 }
-                filedir[path]=1;
-                fg = $(
-                  '<div class="form-group">'+
-                  '   <label for="dir' + i + '" class="col-sm-2 control-label">' + path + 
-                  '&nbsp;&nbsp;<small style="color: gray;" ' /* id="' + path + '__times"*/ + '>' + 1 + 'x</small></label>' +
-                  '   <div class="col-sm-3">'+
-                  '    <input type="text" class="form-control pathinput" id="dir' + i + '" placeholder="' + path + '">'+
-                  '   </div>'+
-                  '</div>');
-                console.log(fg);
-                $("#filedirs").append(fg);
+                filedir[path]++;
+                // ugh, must be a better way.
+                xtimes = $("div").has("input[placeholder='" + path + "']").children("label").children("small");
+                xtimes.text(filedir[path] + "x");
+                xtimes.attr('title', (xtimes.attr('title') || '') + ' ' + getfilepart(d.file));
 
                 $('input[type="text"]').change(updateOutput);
               }
