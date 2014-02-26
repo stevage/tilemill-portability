@@ -223,7 +223,7 @@
       function saveTextAsFile()
       {
         //var textToWrite = $("#output").text();
-        var textToWrite = JSON.stringify(project);
+        var textToWrite = JSON.stringify(project, {}, 2);
         var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
         var fileNameToSaveAs = 'project.mml';
 
