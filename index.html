@@ -124,6 +124,7 @@
             filedir = {};
             $("#filedirs div").remove();
             var i=0;
+            $('input[type="text"]').change(updateOutput); // in case there are no non-database layers
             project.Layer.forEach(function(e) { 
               i++;
               d = e.Datasource;
